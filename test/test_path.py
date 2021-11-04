@@ -88,13 +88,44 @@ class TestInterpolate(unittest.TestCase):
     
 
 class TestGenerateCorner(unittest.TestCase):
-    def test_right_up_turn(self):
+    def test_no_corner(self):
         X_0 = Position(0, 0, 0)
         X_1 = Position(1, 1, 0.5 * pi)
 
-        corner = Path.generate_corner(Path, X_0, X_1)
+        corner = Path.generate_corner(X_0, X_1)
+        self.assertListEqual(corner, [])
+    
+    def test_one_segment(self):
+        X_0 = Position(0, 0, 0)
+        X_1 = Position(1, 1, 0.5 * pi)
 
-        assert_position_equal(corner[1], Position(1, 0, 0.5 * pi))
+        corner = Path.generate_corner(X_0, X_1, n_segments=1)
+        exp_p0 = Position(0, 0, 0.25 * pi)
+        exp_p1 = Position(1, 1, 0.5 * pi)
+
+        assert_path_equal(corner, [exp_p1, exp_p2])
+
+    def test_two_segments(self):
+        X_0 = Position(0, 0, 0)
+        X_1 = Position(1, 1, 0.5 * pi)
+
+        corner = Path.generate_corner(X_0, X_1, n_segments=2)
+
+        # exp_x_1 = 
+        exp_p0 = Position(0, 0, (0.5 * pi) * (1 / 3))
+        exp_p1 = Position(0, 0, (0.5 * pi) * (2 / 3))
+        exp_p2 = Position(1, 1, 0.5 * pi)
+
+        assert_path_equal(corner, [exp_p1, exp_p2])
+    
+    def test_three_segments(self):
+        X_0 = Position(0, 0, 0.25 * pi)
+        X_1 = Position(1, 1, 0.5 * pi)
+
+        corner = Path.generate_corner(Path, X_0, X_1, n_segments=3)
+
+        x_2 = 1 + cos(pi / 4)
+        assert_position_equal(corner[2], Position(1, 0, 0.5 * pi))
 
     
 if __name__ == "__main__":
