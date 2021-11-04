@@ -36,20 +36,14 @@ class Path(list):
 
         return positions
 
-    def generate_corner(self, X_a: Position, X_b: Position, speed: float = 1) -> List[Position]:
-        n_segments = 4
-        thetas = [X_a.theta + ((X_b.theta - X_a.theta) / n_segments) * n for n in range(n_segments + 1)]
+    @staticmethod
+    def generate_corner(self, X_a: Position, X_b: Position, speed: float = 1, n_segments: int = 2) -> List[Position]:
+        x_i = X_a.x + cos(X_a.theta)*speed
+        y_i = X_a.y + sin(X_a.theta)*speed
+        theta_i = X_b.theta
+        X_i = Position(x_i, y_i, theta_i)
 
-        corner = [X_a]
-        for i in range(n_segments):
-            X_0 = corner[-1]
-
-            x_1 = X_0.x + speed * cos(thetas[i])
-            y_1 = X_0.y + speed * sin(thetas[i])
-            theta_1 = thetas[i+1]
-            X_1 = Position(x_1, y_1, theta_1)
-
-            segment = self.interpolate(X_0, X_1, speed=speed)
-            [corner.append(position) for position in segment[1:]]
+        segment_1 = self.interpolate(X_a, X_i, speed=speed)
+        segment_2 = self.interpolate(X_i, X_b, speed=speed)
         
-        return corner
+        return [X_a, segment_1[1:], segment_2[1:]]
