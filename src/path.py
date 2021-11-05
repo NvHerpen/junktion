@@ -4,6 +4,10 @@ from typing import List, Tuple
 from src.position import Position
 
 
+class RightAngleException(Exception):
+    pass
+
+
 class Path(list):
     def __init__(self):
         self.path = []
@@ -37,9 +41,10 @@ class Path(list):
         return positions
     
     @staticmethod
-    def generate_corner(X_a: Position, X_b: Position, n_segments: int = 0) -> List[Position]:
-        # if n_segments == 0:
-        #     return []
+    def generate_corner(X_a: Position, X_b: Position, n_segments: int = 10) -> List[Position]:
+
+        if n_segments == 0:
+            raise RightAngleException
         
         n_positions = n_segments + 1
         
@@ -54,15 +59,3 @@ class Path(list):
         [y_i.append(y_i[i] + L_segment * sin(thetas[i])) for i in range(n_segments)]
 
         return [Position(x_i[i], y_i[i], thetas[i]) for i in range(n_positions)]
-
-    @staticmethod
-    def generate_corner2(self, X_a: Position, X_b: Position, speed: float = 1, n_segments: int = 2) -> List[Position]:
-        x_i = X_a.x + cos(X_a.theta)*speed
-        y_i = X_a.y + sin(X_a.theta)*speed
-        theta_i = X_b.theta
-        X_i = Position(x_i, y_i, theta_i)
-
-        segment_1 = self.interpolate(X_a, X_i, speed=speed)
-        segment_2 = self.interpolate(X_i, X_b, speed=speed)
-        
-        return [X_a, *segment_1[1:], *segment_2[1:]]

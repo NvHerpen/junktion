@@ -1,7 +1,7 @@
 import unittest
 from math import cos, pi, sin
 
-from src.path import Path
+from src.path import Path, RightAngleException
 from src.position import Position
 
 from test.commons import assert_path_equal, assert_position_equal
@@ -92,10 +92,10 @@ class TestGenerateCorner(unittest.TestCase):
         X_0 = Position(0, 0, 0)
         X_1 = Position(1, 1, 0.5 * pi)
 
-        corner = Path.generate_corner(X_0, X_1)
-        self.assertListEqual(corner, [])
+        with self.assertRaises(RightAngleException):
+            _ = Path.generate_corner(X_0, X_1, n_segments=0)
     
-    def test_one_segment(self):
+    def test_1_segment(self):
         X_0 = Position(0, 0, 0)
         X_1 = Position(1, 1, 0.5 * pi)
 
@@ -103,29 +103,39 @@ class TestGenerateCorner(unittest.TestCase):
         exp_p0 = Position(0, 0, 0.25 * pi)
         exp_p1 = Position(1, 1, 0.5 * pi)
 
-        assert_path_equal(corner, [exp_p1, exp_p2])
+        assert_path_equal(corner, [exp_p0, exp_p1])
 
-    def test_two_segments(self):
+    def test_2_segments(self):
+        X_0 = Position(0, 0, 0)
+        X_1 = Position(1, 1, 0.5 * pi)
+        n_segments = 2
+
+        corner = Path.generate_corner(X_0, X_1, n_segments=n_segments)
+
+        exp_theta0 = (0.5 * pi) * (1 / 3)
+        exp_theta1 = (0.5 * pi) * (2 / 3)
+        exp_L = 1/(cos(exp_theta0) + cos(exp_theta1))
+        exp_p0 = Position(0, 0, exp_theta0)
+        exp_p1 = Position(exp_L * cos(exp_theta0), exp_L * sin(exp_theta0), exp_theta1)
+        exp_p2 = Position(1, 1, 0.5 * pi)
+
+        assert_path_equal(corner, [exp_p0, exp_p1, exp_p2])
+    
+    def test_10_segments(self):
         X_0 = Position(0, 0, 0)
         X_1 = Position(1, 1, 0.5 * pi)
 
-        corner = Path.generate_corner(X_0, X_1, n_segments=2)
+        corner = Path.generate_corner(X_0, X_1)
 
-        # exp_x_1 = 
-        exp_p0 = Position(0, 0, (0.5 * pi) * (1 / 3))
-        exp_p1 = Position(0, 0, (0.5 * pi) * (2 / 3))
-        exp_p2 = Position(1, 1, 0.5 * pi)
+        exp_L = 0.15406
+        exp_theta_0 = 0.14279
+        exp_p_1 = Position(0.15249, 0.02192, 0.28559)
 
-        assert_path_equal(corner, [exp_p1, exp_p2])
-    
-    def test_three_segments(self):
-        X_0 = Position(0, 0, 0.25 * pi)
-        X_1 = Position(1, 1, 0.5 * pi)
+        exp_theta_m1 = 0.5 * pi - exp_theta_0
+        exp_p_m1 = Position(1 - exp_L * cos(exp_theta_m1), 1 - exp_L * sin(exp_theta_m1), exp_theta_m1)
 
-        corner = Path.generate_corner(Path, X_0, X_1, n_segments=3)
-
-        x_2 = 1 + cos(pi / 4)
-        assert_position_equal(corner[2], Position(1, 0, 0.5 * pi))
+        assert_position_equal(corner[1], exp_p_1, places=3)
+        assert_position_equal(corner[-2], exp_p_m1, places=3)
 
     
 if __name__ == "__main__":
