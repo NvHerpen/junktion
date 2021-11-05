@@ -4,6 +4,10 @@ from typing import List, Tuple
 from src.position import Position
 
 
+class RightAngleException(Exception):
+    pass
+
+
 class Path(list):
     def __init__(self):
         self.path = []
@@ -35,21 +39,23 @@ class Path(list):
             positions.append(X_1)
 
         return positions
+    
+    @staticmethod
+    def generate_corner(X_a: Position, X_b: Position, n_segments: int = 10) -> List[Position]:
 
-    def generate_corner(self, X_a: Position, X_b: Position, speed: float = 1) -> List[Position]:
-        n_segments = 4
-        thetas = [X_a.theta + ((X_b.theta - X_a.theta) / n_segments) * n for n in range(n_segments + 1)]
-
-        corner = [X_a]
-        for i in range(n_segments):
-            X_0 = corner[-1]
-
-            x_1 = X_0.x + speed * cos(thetas[i])
-            y_1 = X_0.y + speed * sin(thetas[i])
-            theta_1 = thetas[i+1]
-            X_1 = Position(x_1, y_1, theta_1)
-
-            segment = self.interpolate(X_0, X_1, speed=speed)
-            [corner.append(position) for position in segment[1:]]
+        if n_segments == 0:
+            raise RightAngleException
         
-        return corner
+        n_positions = n_segments + 1
+        
+        thetas = [((X_b.theta- X_a.theta) / n_positions) * (i + 1) for i in range(n_positions)]
+        
+        L_segment = (X_b.x - X_a.x) / sum([cos(theta) for theta in thetas])
+
+        x_i = [X_a.x]
+        [x_i.append(x_i[i] + L_segment * cos(thetas[i])) for i in range(n_segments)]
+
+        y_i = [X_a.y]
+        [y_i.append(y_i[i] + L_segment * sin(thetas[i])) for i in range(n_segments)]
+
+        return [Position(x_i[i], y_i[i], thetas[i]) for i in range(n_positions)]

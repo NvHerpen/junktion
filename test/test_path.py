@@ -1,16 +1,10 @@
 import unittest
 from math import cos, pi, sin
 
-from src.path import Path
+from src.path import Path, RightAngleException
 from src.position import Position
 
-def compare_paths(path, exp_path):
-    tc = unittest.TestCase()
-
-    for i in range(len(path)):
-        tc.assertAlmostEqual(path[i].x, exp_path[i].x)
-        tc.assertAlmostEqual(path[i].y, exp_path[i].y)
-        tc.assertAlmostEqual(path[i].theta, exp_path[i].theta)
+from test.commons import assert_path_equal, assert_position_equal
 
 
 class TestInterpolate(unittest.TestCase):
@@ -21,7 +15,7 @@ class TestInterpolate(unittest.TestCase):
 
         exp_path = [Position(0, 0, 0), Position(0, 0, 0)]
 
-        compare_paths(path, exp_path)
+        assert_path_equal(path, exp_path)
     
     def test_straight_horizontal(self):
         X_0 = Position(0, 0, 0)
@@ -32,7 +26,7 @@ class TestInterpolate(unittest.TestCase):
         exp_path = [Position(i, 0, 0) for i in range(exp_len_path)]
 
         self.assertEqual(len(path), exp_len_path)
-        compare_paths(path, exp_path)
+        assert_path_equal(path, exp_path)
     
     def test_straight_horizontal_fast(self):
         X_0 = Position(0, 0, 0)
@@ -44,33 +38,29 @@ class TestInterpolate(unittest.TestCase):
         exp_path = [Position(i*speed, 0, 0) for i in range(exp_len_path)]
 
         self.assertEqual(len(path), exp_len_path)
-        compare_paths(path, exp_path)
+        assert_path_equal(path, exp_path)
 
     def test_float_speed(self):
         X_0 = Position(0, 0, 0)
         X_1 = Position(10, 0, 0)
-        speed = 1.5
-        path = Path.interpolate(X_0, X_1, speed=speed)
 
-        exp_len_path = 8
-        self.assertEqual(len(path), exp_len_path)
-        
-        exp_pos_1 = Position(1.5, 0, 0)
-        exp_pos_m2 = Position(9.0, 0, 0)
-        self.assertAlmostEqual(path[1], exp_pos_1)
-        self.assertAlmostEqual(path[-2], exp_pos_m2)
+        path = Path.interpolate(X_0, X_1, speed=1.5)
+
+        self.assertEqual(len(path), 8)
+        assert_position_equal(path[1], Position(1.5, 0, 0))
+        assert_position_equal(path[-2], Position(9.0, 0, 0))
 
     def test_straight_vertical(self):
         X_0 = Position(0, 0, 0.5*pi)
         X_1 = Position(0, 10, 0.5*pi)
         speed = 1
-        path = Path.interpolate(X_0, X_1, speed=speed)
+        path = Path.interpolate(X_0, X_1, speed=1)
 
         exp_len_path = 11
         exp_path = [Position(0, i*speed, 0.5*pi) for i in range(exp_len_path)]
 
         self.assertEqual(len(path), exp_len_path)
-        compare_paths(path, exp_path)
+        assert_path_equal(path, exp_path)
     
     def test_straight_negative(self):
         X_0 = Position(10, 0, pi)
@@ -82,7 +72,7 @@ class TestInterpolate(unittest.TestCase):
         exp_path = [Position(10 - i*speed, 0, pi) for i in range(exp_len_path)]
 
         self.assertEqual(len(path), exp_len_path)
-        compare_paths(path, exp_path)
+        assert_path_equal(path, exp_path)
 
     def test_straight_negative_vertical(self):
         X_0 = Position(0, 10, 1.5*pi)
@@ -94,62 +84,59 @@ class TestInterpolate(unittest.TestCase):
         exp_path = [Position(0, 10 - i*speed, 1.5*pi) for i in range(exp_len_path)]
 
         self.assertEqual(len(path), exp_len_path)
-        compare_paths(path, exp_path)
+        assert_path_equal(path, exp_path)
     
 
 class TestGenerateCorner(unittest.TestCase):
-    def test_right_up_turn(self):
+    def test_no_corner(self):
         X_0 = Position(0, 0, 0)
-        X_1 = Position(123, 123, 0.5 * pi)
+        X_1 = Position(1, 1, 0.5 * pi)
 
-        speed = 1
-        n_segments = 4
+        with self.assertRaises(RightAngleException):
+            _ = Path.generate_corner(X_0, X_1, n_segments=0)
+    
+    def test_1_segment(self):
+        X_0 = Position(0, 0, 0)
+        X_1 = Position(1, 1, 0.5 * pi)
 
-        path = Path()
-        corner = path.generate_corner(X_0, X_1, speed=speed)
+        corner = Path.generate_corner(X_0, X_1, n_segments=1)
+        exp_p0 = Position(0, 0, 0.25 * pi)
+        exp_p1 = Position(1, 1, 0.5 * pi)
 
-        exp_len_corner = 5
-        self.assertEqual(len(corner), exp_len_corner)
+        assert_path_equal(corner, [exp_p0, exp_p1])
 
-        thetas = [X_0.theta + ((X_1.theta - X_0.theta) / n_segments) * n for n in range(n_segments + 1)]
-        corner_width = speed * sum([cos(t) for t in thetas])
+    def test_2_segments(self):
+        X_0 = Position(0, 0, 0)
+        X_1 = Position(1, 1, 0.5 * pi)
+        n_segments = 2
 
-        # Test point 1
-        self.assertAlmostEqual(corner[1].theta, 0.5 * pi / n_segments)
-        self.assertAlmostEqual(corner[1].x, 1.0)
-        self.assertAlmostEqual(corner[1].y, 0.0)
+        corner = Path.generate_corner(X_0, X_1, n_segments=n_segments)
 
-        # Test point -1
-        self.assertAlmostEqual(corner[-2].theta, (3/4) * (0.5 * pi))
-        self.assertAlmostEqual(corner[-1].x, corner_width - cos(0.5 * pi))
-        self.assertAlmostEqual(corner[-1].y, corner_width - sin(0.5 * pi))
+        exp_theta0 = (0.5 * pi) * (1 / 3)
+        exp_theta1 = (0.5 * pi) * (2 / 3)
+        exp_L = 1/(cos(exp_theta0) + cos(exp_theta1))
+        exp_p0 = Position(0, 0, exp_theta0)
+        exp_p1 = Position(exp_L * cos(exp_theta0), exp_L * sin(exp_theta0), exp_theta1)
+        exp_p2 = Position(1, 1, 0.5 * pi)
 
-    def test_down_left_turn(self):
-        X_0 = Position(0, 0, 1.5 * pi)
-        X_1 = Position(123, 123, pi)
-        speed = 1
-        n_segments = 4
+        assert_path_equal(corner, [exp_p0, exp_p1, exp_p2])
+    
+    def test_10_segments(self):
+        X_0 = Position(0, 0, 0)
+        X_1 = Position(1, 1, 0.5 * pi)
 
-        path = Path()
-        corner = path.generate_corner(X_0, X_1, speed=speed)
+        corner = Path.generate_corner(X_0, X_1)
 
-        exp_len_corner = 5
-        self.assertEqual(len(corner), exp_len_corner)
+        exp_L = 0.15406
+        exp_theta_0 = 0.14279
+        exp_p_1 = Position(0.15249, 0.02192, 0.28559)
 
-        thetas = [X_0.theta + ((X_1.theta - X_0.theta) / n_segments) * n for n in range(n_segments + 1)]
-        corner_width = abs(speed * sum([cos(t) for t in thetas]))
+        exp_theta_m1 = 0.5 * pi - exp_theta_0
+        exp_p_m1 = Position(1 - exp_L * cos(exp_theta_m1), 1 - exp_L * sin(exp_theta_m1), exp_theta_m1)
 
-        # Test point 1
-        theta_1 = 1.5 * pi - 0.5 * pi / 4
-        self.assertAlmostEqual(corner[1].theta, theta_1)
-        self.assertAlmostEqual(corner[1].x, 0.0)
-        self.assertAlmostEqual(corner[1].y, -1.0)
+        assert_position_equal(corner[1], exp_p_1, places=3)
+        assert_position_equal(corner[-2], exp_p_m1, places=3)
 
-        # Test point -1
-        theta_m2 = pi + 0.5 * pi / 4
-        self.assertAlmostEqual(corner[-2].theta, theta_m2)
-        self.assertAlmostEqual(corner[-1].x, -corner_width - cos(pi))
-        self.assertAlmostEqual(corner[-1].y, -corner_width)
     
 if __name__ == "__main__":
     unittest.main()
