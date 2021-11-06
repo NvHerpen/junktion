@@ -88,6 +88,9 @@ class TestInterpolate(unittest.TestCase):
     
 
 class TestGenerateCorner(unittest.TestCase):
+    DEFAULT_DELTA_THETA = 0.14279
+    DEFAULT_L = 0.15406
+
     def test_no_corner(self):
         X_0 = Position(0, 0, 0)
         X_1 = Position(1, 1, 0.5 * pi)
@@ -127,12 +130,27 @@ class TestGenerateCorner(unittest.TestCase):
 
         corner = Path.generate_corner(X_0, X_1)
 
-        exp_L = 0.15406
-        exp_theta_0 = 0.14279
-        exp_p_1 = Position(0.15249, 0.02192, 0.28559)
+        exp_p_1 = Position(self.DEFAULT_L, 0.02192, 2 * self.DEFAULT_DELTA_THETA)
 
-        exp_theta_m1 = 0.5 * pi - exp_theta_0
-        exp_p_m1 = Position(1 - exp_L * cos(exp_theta_m1), 1 - exp_L * sin(exp_theta_m1), exp_theta_m1)
+        exp_theta_m1 = 0.5 * pi - self.DEFAULT_DELTA_THETA
+        exp_p_m1 = Position(1 - self.DEFAULT_L * cos(exp_theta_m1), 1 - self.DEFAULT_L * sin(exp_theta_m1), exp_theta_m1)
+
+        assert_position_equal(corner[1], exp_p_1, places=3)
+        assert_position_equal(corner[-2], exp_p_m1, places=3)
+    
+    def test_left_down_corner(self):
+        X_0 = Position(1, 1, pi)
+        X_1 = Position(0, 0, 1.5 * pi)
+
+        corner = Path.generate_corner(X_0, X_1)
+
+        exp_x_1 = 1 - self.DEFAULT_L * cos(self.DEFAULT_DELTA_THETA)
+        exp_y_1 = 1 - self.DEFAULT_L * sin(self.DEFAULT_DELTA_THETA)
+        exp_p_1 = Position(exp_x_1, exp_y_1, pi + 2 * self.DEFAULT_DELTA_THETA)
+        
+        exp_x_m1 = self.DEFAULT_L * sin(self.DEFAULT_DELTA_THETA)
+        exp_y_m1 = self.DEFAULT_L * cos(self.DEFAULT_DELTA_THETA)
+        exp_p_m1 = Position(exp_x_m1, exp_y_m1, 1.5 * pi - self.DEFAULT_DELTA_THETA)
 
         assert_position_equal(corner[1], exp_p_1, places=3)
         assert_position_equal(corner[-2], exp_p_m1, places=3)
