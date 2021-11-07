@@ -14,7 +14,7 @@ class Path(list):
     
     @staticmethod
     def generate_path(X_0: Position, X_1: Position, speed: float = 1):
-        return []
+        return Path.interpolate(X_0, X_1, speed)
     
     @staticmethod
     def interpolate(X_0: Position, X_1: Position, speed: float = 1) -> List[Position]:
