@@ -13,6 +13,10 @@ class Path(list):
         self.path = []
     
     @staticmethod
+    def generate_path(X_0: Position, X_1: Position, speed: float = 1):
+        return []
+    
+    @staticmethod
     def interpolate(X_0: Position, X_1: Position, speed: float = 1) -> List[Position]:
         x_distance = abs(X_1.x - X_0.x)
         y_distance = abs(X_1.y - X_0.y)

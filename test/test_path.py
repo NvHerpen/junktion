@@ -163,7 +163,19 @@ class TestGenerateCorner(unittest.TestCase):
 
         assert_position_equal(corner[1], exp_p_1, places=3)
         assert_position_equal(corner[-2], exp_p_m1, places=3)
-
     
+
+class TestPath(unittest.TestCase):
+    def test_straight_path(self):
+        X_0 = Position(0, 0, 0)
+        X_1 = Position(10, 0, 0)
+
+        path = Path.generate_path(X_0, X_1)
+
+        exp_path = [Position(i, 0, 0) for i in range(11)]
+
+        assert_path_equal(path, exp_path)
+
+
 if __name__ == "__main__":
     unittest.main()

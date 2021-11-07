@@ -12,5 +12,8 @@ def assert_position_equal(val: Position, exp: Position, places: int = 7):
 
 
 def assert_path_equal(val: Path, exp: Path, places: int = 7):
+    tc = unittest.TestCase()
+    tc.assertEqual(len(val), len(exp))
+
     for v, e in zip(val, exp):
         assert_position_equal(v, e, places=places)
