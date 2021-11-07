@@ -130,10 +130,16 @@ class TestGenerateCorner(unittest.TestCase):
 
         corner = Path.generate_corner(X_0, X_1)
 
-        exp_p_1 = Position(self.DEFAULT_L, 0.02192, 2 * self.DEFAULT_DELTA_THETA)
-
-        exp_theta_m1 = 0.5 * pi - self.DEFAULT_DELTA_THETA
-        exp_p_m1 = Position(1 - self.DEFAULT_L * cos(exp_theta_m1), 1 - self.DEFAULT_L * sin(exp_theta_m1), exp_theta_m1)
+        exp_p_1 = Position(
+            self.DEFAULT_L * cos(self.DEFAULT_DELTA_THETA), 
+            self.DEFAULT_L * sin(self.DEFAULT_DELTA_THETA), 
+            2 * self.DEFAULT_DELTA_THETA
+        )
+        exp_p_m1 = Position(
+            1 - self.DEFAULT_L * sin(self.DEFAULT_DELTA_THETA),
+            1 - self.DEFAULT_L * cos(self.DEFAULT_DELTA_THETA),
+            0.5 * pi - self.DEFAULT_DELTA_THETA
+        )
 
         assert_position_equal(corner[1], exp_p_1, places=3)
         assert_position_equal(corner[-2], exp_p_m1, places=3)
@@ -144,13 +150,16 @@ class TestGenerateCorner(unittest.TestCase):
 
         corner = Path.generate_corner(X_0, X_1)
 
-        exp_x_1 = 1 - self.DEFAULT_L * cos(self.DEFAULT_DELTA_THETA)
-        exp_y_1 = 1 - self.DEFAULT_L * sin(self.DEFAULT_DELTA_THETA)
-        exp_p_1 = Position(exp_x_1, exp_y_1, pi + 2 * self.DEFAULT_DELTA_THETA)
-        
-        exp_x_m1 = self.DEFAULT_L * sin(self.DEFAULT_DELTA_THETA)
-        exp_y_m1 = self.DEFAULT_L * cos(self.DEFAULT_DELTA_THETA)
-        exp_p_m1 = Position(exp_x_m1, exp_y_m1, 1.5 * pi - self.DEFAULT_DELTA_THETA)
+        exp_p_1 = Position(
+            1 - self.DEFAULT_L * cos(self.DEFAULT_DELTA_THETA), 
+            1 - self.DEFAULT_L * sin(self.DEFAULT_DELTA_THETA), 
+            pi + 2 * self.DEFAULT_DELTA_THETA
+        )
+        exp_p_m1 = Position(
+            self.DEFAULT_L * sin(self.DEFAULT_DELTA_THETA),
+            self.DEFAULT_L * cos(self.DEFAULT_DELTA_THETA),
+            1.5 * pi - self.DEFAULT_DELTA_THETA
+        )
 
         assert_position_equal(corner[1], exp_p_1, places=3)
         assert_position_equal(corner[-2], exp_p_m1, places=3)

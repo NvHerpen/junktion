@@ -48,7 +48,7 @@ class Path(list):
         
         n_positions = n_segments + 1
         
-        thetas = [((X_b.theta- X_a.theta) / n_positions) * (i + 1) for i in range(n_positions)]
+        thetas = [X_a.theta + ((X_b.theta- X_a.theta) / n_positions) * (i + 1) for i in range(n_positions)]
         
         L_segment = (X_b.x - X_a.x) / sum([cos(theta) for theta in thetas])
 
