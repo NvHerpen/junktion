@@ -213,6 +213,5 @@ class TestPreCalculatePath(unittest.TestCase):
         assert_position_equal(pre_calculated_path[-2], exp_x_b_m2)
 
 
-
 if __name__ == "__main__":
     unittest.main()
