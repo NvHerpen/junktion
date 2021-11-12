@@ -91,9 +91,9 @@ class Path(list):
         L_segment = (X_b.x - X_a.x) / sum([cos(theta) for theta in thetas])
 
         x_i = [X_a.x]
-        [x_i.append(x_i[i] + L_segment * cos(thetas[i])) for i in range(n_segments)]
-
         y_i = [X_a.y]
-        [y_i.append(y_i[i] + L_segment * sin(thetas[i])) for i in range(n_segments)]
+        for i in range(n_segments):
+            x_i.append(x_i[i] + L_segment * cos(thetas[i]))
+            y_i.append(y_i[i] + L_segment * sin(thetas[i]))
 
         return [Position(x_i[i], y_i[i], thetas[i]) for i in range(n_positions)]
